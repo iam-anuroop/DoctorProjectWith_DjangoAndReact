@@ -47,9 +47,10 @@ class UsersSerializer(serializers.ModelSerializer):
     fields = '__all__'
 
 class UpdateSerializer(serializers.ModelSerializer):
+    doctor = DoctorSerializer()
     class Meta:
       model = Users
-      fields = ('id','first_name', 'last_name','username', 'email')
+      fields = ('id','first_name', 'last_name','username', 'email','doctor')
 
     
     def update(self, instance, validated_data):
@@ -57,10 +58,11 @@ class UpdateSerializer(serializers.ModelSerializer):
        instance.last_name = validated_data.get('last_name',instance.last_name)
        instance.email = validated_data.get('email',instance.email)
        instance.username = validated_data.get('username',instance.username)
+       instance.is_doctor = validated_data.get('is_doctor',instance.is_doctor)
 
 
        if instance.is_doctor:
-          print(instance.is_doctor,'lllllllllllllllllllllllllllllllllllllllllll')
+          print(instance.is_doctor,'llllllllllllllllllllllllllll')
           doctor_data = validated_data.get('doctor', {})
           print(doctor_data)
           doctor = Doctors.objects.get(user=instance)
