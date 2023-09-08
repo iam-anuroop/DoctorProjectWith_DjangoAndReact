@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.fields import empty
 from .models import Users , Doctors
 from rest_framework.exceptions import ValidationError
 
@@ -14,6 +15,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         password = attrs.get('password')
         password2 = attrs.get('password2')
         username = attrs.get('username')
+        is_doctor = attrs.get('is_doctor')
         # print(username)
 
         if len(password)<=4:
@@ -35,22 +37,27 @@ class LoginSerializer(serializers.ModelSerializer):
         fields = ['email','password']
 
 
+
 class DoctorSerializer(serializers.ModelSerializer):
-   class Meta:
+    class Meta:
         model = Doctors
         fields = '__all__'
 
+# for profile view 
 class UsersSerializer(serializers.ModelSerializer):
-   user = DoctorSerializer()
-   class Meta:
-    model = Users
-    fields = '__all__'
+    doctors = DoctorSerializer(read_only=True)
+
+    class Meta:
+        model = Users
+        fields = ['id','first_name','last_name','username','email','doctors']
+
+
 
 class UpdateSerializer(serializers.ModelSerializer):
-    doctor = DoctorSerializer()
+    doctors = DoctorSerializer()
     class Meta:
       model = Users
-      fields = ('id','first_name', 'last_name','username', 'email','doctor')
+      fields = ('id','first_name', 'last_name','username', 'email','doctors')
 
     
     def update(self, instance, validated_data):
@@ -58,19 +65,28 @@ class UpdateSerializer(serializers.ModelSerializer):
        instance.last_name = validated_data.get('last_name',instance.last_name)
        instance.email = validated_data.get('email',instance.email)
        instance.username = validated_data.get('username',instance.username)
-       instance.is_doctor = validated_data.get('is_doctor',instance.is_doctor)
-
+      #  instance.is_doctor = validated_data.get('is_doctor',instance.is_doctor)
 
        if instance.is_doctor:
-          print(instance.is_doctor,'llllllllllllllllllllllllllll')
-          doctor_data = validated_data.get('doctor', {})
-          print(doctor_data)
+          doctor_data = validated_data.get('doctors')
           doctor = Doctors.objects.get(user=instance)
           doctor.department = doctor_data.get('department', doctor.department)
           doctor.hospital = doctor_data.get('hospital', doctor.hospital)
           doctor.save()
              
-            
        instance.save()
        return instance
+    
+
+class UserAdminSerializer(serializers.ModelSerializer):
+    doctor = DoctorSerializer(read_only=True)   
+    class Meta:
+        model = Users
+        fields = ('id','first_name', 'last_name','username', 'email','is_active','doctor')
+
+ 
+    def update(self,instance,validated_data):
+        instance.is_active = validated_data.get('is_active',instance.is_active)
+        instance.save()
+        return instance
     

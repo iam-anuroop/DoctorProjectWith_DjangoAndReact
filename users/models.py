@@ -71,9 +71,9 @@ class Users(AbstractBaseUser):
       "Is the user a member of staff?"
       return self.is_admin
 
-
+  
 
 class Doctors(models.Model):
-    user = models.ForeignKey(Users,on_delete=models.CASCADE)
+    user = models.OneToOneField(Users,on_delete=models.CASCADE,related_name='doctors')
     department = models.CharField(max_length=155)
     hospital = models.CharField(max_length=155)

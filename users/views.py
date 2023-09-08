@@ -3,10 +3,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,IsAdminUser
 from rest_framework.decorators import permission_classes
 from django.contrib.auth import authenticate
-from .serializer import RegistrationSerializer,LoginSerializer,DoctorSerializer,UsersSerializer,UpdateSerializer
+from .serializer import RegistrationSerializer,LoginSerializer,UsersSerializer,UpdateSerializer,UserAdminSerializer
 from .models import Users,Doctors
 from django.shortcuts import get_object_or_404
 
@@ -93,44 +93,23 @@ class LoginView(APIView):
 @permission_classes([IsAuthenticated])
 class ProfileManageView(APIView):
     def get(self,request):
-        user = request.user
-        try:
-            if user.is_doctor == True:
-                user = get_object_or_404(Doctors, user__id=user.id)
-                serializer = DoctorSerializer(user)
-                return Response(
-                        {
-                        'msg':'doctor account',
-                        'data':serializer.data
-                        },
-                        status=status.HTTP_200_OK
-                        )
-            else:
-                user = Users.objects.get(pk=user.id)
-                serializer = UsersSerializer(user)
-                return Response(
-                        {
-                        'msg':'user account',
-                        'data':serializer.data
-                        },
-                        status=status.HTTP_200_OK
-                        )
-        except Exception as e:
-                return Response(
-                        {
-                        'msg':'user not found',
-                        'data': e
-                        },
-                        status=status.HTTP_404_NOT_FOUND
-                        )
+        user = Users.objects.get(pk=request.user.id)
+        serializer = UsersSerializer( user)
+        return Response(
+                {
+                'msg':'user account',
+                'data':serializer.data
+                },
+                status=status.HTTP_200_OK
+                )
+    
     def patch(self,request):
         serializer = UpdateSerializer(request.user,data=request.data,partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(
                     {
-                    'msg':'profile updated',
-                    'data':serializer.data
+                    'msg':'profile updated'
                     },
                     status=status.HTTP_200_OK
                     )
@@ -160,8 +139,51 @@ class ProfileManageView(APIView):
                 )
 
         
+@permission_classes([IsAdminUser])
+class AdminPanelView(APIView):
+    def get(self,request):
+        users = Users.objects.all()
+        serializer = UsersSerializer(users,many=True)
+        return Response(
+                {
+                'msg':'users',
+                'data':serializer.data
+                },
+                status=status.HTTP_200_OK
+                )
+    
+    def patch(self,request,pk=None):
+        if pk is not None:
+            user = Users.objects.get(pk=pk)
+            serializer = UserAdminSerializer(user,data=request.data,partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                if serializer.validated_data['is_active']:
+                    return Response(
+                            {
+                            "msg":"User Unblocked !!!"
+                            },
+                            status=status.HTTP_200_OK
+                            )
+                return Response(
+                        {
+                        "msg":"User Blocked !!!"
+                        },
+                        status=status.HTTP_200_OK
+                        )
+            return Response(serializer.errors)
+
+@permission_classes([IsAuthenticated])
+class UserDoctorView(APIView):
+    def get(self,request):
+        user = Users.objects.filter(is_doctor=True)
+        serializer = UserAdminSerializer(user,many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
 
 
+
+        
+    
         
 
 
