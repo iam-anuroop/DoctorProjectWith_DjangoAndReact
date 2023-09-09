@@ -7,6 +7,7 @@ from rest_framework.exceptions import ValidationError
 
 class RegistrationSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(style={'input_type':'password'}, write_only=True)
+    is_doctor = serializers.BooleanField(default=False)
     class Meta:
         model = Users
         fields = ['username','email','password','password2','is_doctor']
@@ -45,19 +46,24 @@ class DoctorSerializer(serializers.ModelSerializer):
 
 # for profile view 
 class UsersSerializer(serializers.ModelSerializer):
-    doctors = DoctorSerializer(read_only=True)
+    doctors = DoctorSerializer()
 
     class Meta:
         model = Users
         fields = ['id','first_name','last_name','username','email','doctors']
 
 
+            
 
 class UpdateSerializer(serializers.ModelSerializer):
     doctors = DoctorSerializer()
     class Meta:
       model = Users
-      fields = ('id','first_name', 'last_name','username', 'email','doctors')
+      fields = ('id','first_name', 'last_name','username', 'email')
+
+
+  
+            
 
     
     def update(self, instance, validated_data):

@@ -21,13 +21,14 @@ class RegisrationView(APIView):
             email = serializer.validated_data.get('email')
             username = serializer.validated_data.get('username')
             password = serializer.validated_data.get('password')
+            is_doctor = serializer.validated_data.get('is_doctor')
 
             Users.objects.create_user(
                 email = email,
                 username = username,
-                password = password
+                password = password,
+                is_doctor=is_doctor
             )
-
             return Response(
                     {
                     'msg':'Registration successfull...',
