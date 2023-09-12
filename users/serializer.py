@@ -2,8 +2,8 @@ from rest_framework import serializers
 from rest_framework.fields import empty
 from .models import Users , Doctors
 from rest_framework.exceptions import ValidationError
-
-
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework.renderers import JSONRenderer
 
 class RegistrationSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(style={'input_type':'password'}, write_only=True)
@@ -31,12 +31,15 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return Users.objects.create_user(**validate_data)
     
 
-class LoginSerializer(serializers.ModelSerializer):
-   email = serializers.EmailField()
-   class Meta:
-        model = Users
-        fields = ['email','password']
-
+class MyTokenSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        user_data =  UsersSerializer(user).data
+        token['user'] = user_data
+        if hasattr(user,'is_admin'):
+            token['is_admin'] = user.is_admin
+        return token
 
 
 class DoctorSerializer(serializers.ModelSerializer):
