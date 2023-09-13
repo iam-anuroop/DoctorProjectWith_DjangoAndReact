@@ -59,6 +59,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 @permission_classes([IsAuthenticated])
 class ProfileManageView(APIView):
     def get(self,request):
+        print(request.data)
         user = Users.objects.get(pk=request.user.id)
         serializer = UsersSerializer( user)
         return Response(
@@ -70,6 +71,7 @@ class ProfileManageView(APIView):
                 )
     
     def patch(self,request):
+        print(request.data)
         serializer = UpdateSerializer(request.user,data=request.data,partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -109,6 +111,7 @@ class ProfileManageView(APIView):
 class AdminPanelView(APIView):
     def get(self,request,pk=None):
         if pk is not None:
+            print('pkkkkkk',pk)
             user = Users.objects.get(id=pk)
             serializer = UsersSerializer(user)
             return Response(
@@ -130,7 +133,11 @@ class AdminPanelView(APIView):
                     )
     
     def patch(self,request,pk=None):
+        print(request.data)
+        print(pk)
+        print('hi')
         if pk is not None:
+            print(request.data)
             user = Users.objects.get(pk=pk)
             serializer = UserAdminSerializer(user,data=request.data,partial=True)
             if serializer.is_valid():
@@ -153,7 +160,7 @@ class AdminPanelView(APIView):
 @permission_classes([IsAuthenticated])
 class UserDoctorView(APIView):
     def get(self,request):
-        user = Users.objects.filter(is_doctor=True)
+        user = Users.objects.filter(is_doctor=True,doctors__is_verified=True,is_active=True)
         serializer = UserAdminSerializer(user,many=True)
         return Response(serializer.data,status=status.HTTP_200_OK)
 

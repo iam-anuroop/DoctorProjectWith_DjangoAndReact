@@ -53,7 +53,7 @@ class UsersSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Users
-        fields = ['id','first_name','last_name','username','email','doctors']
+        fields = ['id','first_name','last_name','username','email','is_active','doctors']
 
 
             
@@ -62,9 +62,9 @@ class UpdateSerializer(serializers.ModelSerializer):
     doctors = DoctorSerializer()
     class Meta:
       model = Users
-      fields = ('id','first_name', 'last_name','username', 'email')
+      fields = ('id','first_name', 'last_name','username', 'email','doctors')
 
-
+    
   
             
 
@@ -75,12 +75,15 @@ class UpdateSerializer(serializers.ModelSerializer):
        instance.email = validated_data.get('email',instance.email)
        instance.username = validated_data.get('username',instance.username)
       #  instance.is_doctor = validated_data.get('is_doctor',instance.is_doctor)
-
+       print(instance.is_doctor)
        if instance.is_doctor:
+          print(instance)
           doctor_data = validated_data.get('doctors')
           doctor = Doctors.objects.get(user=instance)
           doctor.department = doctor_data.get('department', doctor.department)
           doctor.hospital = doctor_data.get('hospital', doctor.hospital)
+          if doctor.hospital is not  None and doctor.department is not None:
+              doctor.is_verified = True
           doctor.save()
              
        instance.save()
@@ -88,10 +91,10 @@ class UpdateSerializer(serializers.ModelSerializer):
     
 
 class UserAdminSerializer(serializers.ModelSerializer):
-    doctor = DoctorSerializer(read_only=True)   
+    doctors = DoctorSerializer(read_only=True)   
     class Meta:
         model = Users
-        fields = ('id','first_name', 'last_name','username', 'email','is_active','doctor')
+        fields = ('id','first_name', 'last_name','username', 'email','is_active','doctors')
 
  
     def update(self,instance,validated_data):

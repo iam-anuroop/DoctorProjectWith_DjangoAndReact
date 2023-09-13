@@ -77,3 +77,5 @@ class Doctors(models.Model):
     user = models.OneToOneField(Users,on_delete=models.CASCADE,related_name='doctors')
     department = models.CharField(max_length=155,null=True,blank=True)
     hospital = models.CharField(max_length=155,null=True,blank=True)
+
+    is_verified = models.BooleanField(default=False)
